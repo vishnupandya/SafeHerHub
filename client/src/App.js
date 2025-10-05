@@ -1,34 +1,31 @@
-import React, { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Toaster } from 'react-hot-toast';
+import React, { useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import { Toaster } from "react-hot-toast";
 
 // Components
-import Navbar from './components/layout/Navbar';
-import Sidebar from './components/layout/Sidebar';
-import Footer from './components/layout/Footer';
-import LoadingSpinner from './components/common/LoadingSpinner';
-import ErrorBoundary from './components/common/ErrorBoundary';
+import Navbar from "./components/layout/Navbar";
+import Sidebar from "./components/layout/Sidebar";
+import Footer from "./components/layout/Footer";
+import LoadingSpinner from "./components/common/LoadingSpinner";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 
 // Pages
-import Home from './pages/Home';
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import Dashboard from './pages/Dashboard';
-import SafetyTools from './pages/SafetyTools';
-import CommunityForum from './pages/CommunityForum';
-import Reports from './pages/Reports';
-import Profile from './pages/Profile';
-import Settings from './pages/Settings';
-import NotFound from './pages/NotFound';
+import Home from "./pages/Home";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import Dashboard from "./pages/Dashboard";
+import SafetyTools from "./pages/SafetyTools";
+import CommunityForum from "./pages/CommunityForum";
+import Reports from "./pages/Reports";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import NotFound from "./pages/NotFound";
+import useSocket from "./hooks/useSocket";
 
 // Redux
-import { checkAuthStatus } from './store/slices/authSlice';
-import { toggleTheme } from './store/slices/themeSlice';
-
-// Hooks
-import { useSocket } from './hooks/useSocket';
+import { checkAuthStatus } from "./store/slices/authSlice";
 
 function App() {
   const dispatch = useDispatch();
@@ -44,16 +41,16 @@ function App() {
   useEffect(() => {
     // Apply theme to document
     if (isDarkMode) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   }, [isDarkMode]);
 
   useEffect(() => {
     // Initialize socket connection when authenticated
     if (isAuthenticated && socket) {
-      socket.emit('join-user-room', localStorage.getItem('userId'));
+      socket.emit("join-user-room", localStorage.getItem("userId"));
     }
   }, [isAuthenticated, socket]);
 
@@ -64,29 +61,33 @@ function App() {
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
     in: { opacity: 1, y: 0 },
-    out: { opacity: 0, y: -20 }
+    out: { opacity: 0, y: -20 },
   };
 
   const pageTransition = {
-    type: 'tween',
-    ease: 'anticipate',
-    duration: 0.4
+    type: "tween",
+    ease: "anticipate",
+    duration: 0.4,
   };
 
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         <Navbar />
-        
+
         <div className="flex">
           {isAuthenticated && <Sidebar />}
-          
-          <main className={`flex-1 ${isAuthenticated ? 'ml-64' : ''} transition-all duration-300`}>
+
+          <main
+            className={`flex-1 ${
+              isAuthenticated ? "ml-64" : ""
+            } transition-all duration-300`}
+          >
             <AnimatePresence mode="wait">
               <Routes>
                 {/* Public Routes */}
-                <Route 
-                  path="/" 
+                <Route
+                  path="/"
                   element={
                     <motion.div
                       initial="initial"
@@ -97,10 +98,10 @@ function App() {
                     >
                       <Home />
                     </motion.div>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/login" 
+                <Route
+                  path="/login"
                   element={
                     isAuthenticated ? (
                       <Navigate to="/dashboard" replace />
@@ -115,10 +116,10 @@ function App() {
                         <Login />
                       </motion.div>
                     )
-                  } 
+                  }
                 />
-                <Route 
-                  path="/register" 
+                <Route
+                  path="/register"
                   element={
                     isAuthenticated ? (
                       <Navigate to="/dashboard" replace />
@@ -133,12 +134,12 @@ function App() {
                         <Register />
                       </motion.div>
                     )
-                  } 
+                  }
                 />
 
                 {/* Protected Routes */}
-                <Route 
-                  path="/dashboard" 
+                <Route
+                  path="/dashboard"
                   element={
                     isAuthenticated ? (
                       <motion.div
@@ -153,10 +154,10 @@ function App() {
                     ) : (
                       <Navigate to="/login" replace />
                     )
-                  } 
+                  }
                 />
-                <Route 
-                  path="/safety-tools" 
+                <Route
+                  path="/safety-tools"
                   element={
                     isAuthenticated ? (
                       <motion.div
@@ -171,10 +172,10 @@ function App() {
                     ) : (
                       <Navigate to="/login" replace />
                     )
-                  } 
+                  }
                 />
-                <Route 
-                  path="/community" 
+                <Route
+                  path="/community"
                   element={
                     isAuthenticated ? (
                       <motion.div
@@ -189,10 +190,10 @@ function App() {
                     ) : (
                       <Navigate to="/login" replace />
                     )
-                  } 
+                  }
                 />
-                <Route 
-                  path="/reports" 
+                <Route
+                  path="/reports"
                   element={
                     isAuthenticated ? (
                       <motion.div
@@ -207,10 +208,10 @@ function App() {
                     ) : (
                       <Navigate to="/login" replace />
                     )
-                  } 
+                  }
                 />
-                <Route 
-                  path="/profile" 
+                <Route
+                  path="/profile"
                   element={
                     isAuthenticated ? (
                       <motion.div
@@ -225,10 +226,10 @@ function App() {
                     ) : (
                       <Navigate to="/login" replace />
                     )
-                  } 
+                  }
                 />
-                <Route 
-                  path="/settings" 
+                <Route
+                  path="/settings"
                   element={
                     isAuthenticated ? (
                       <motion.div
@@ -243,12 +244,12 @@ function App() {
                     ) : (
                       <Navigate to="/login" replace />
                     )
-                  } 
+                  }
                 />
 
                 {/* 404 Route */}
-                <Route 
-                  path="*" 
+                <Route
+                  path="*"
                   element={
                     <motion.div
                       initial="initial"
@@ -259,7 +260,7 @@ function App() {
                     >
                       <NotFound />
                     </motion.div>
-                  } 
+                  }
                 />
               </Routes>
             </AnimatePresence>
@@ -267,28 +268,28 @@ function App() {
         </div>
 
         <Footer />
-        
+
         <Toaster
           position="top-right"
           toastOptions={{
             duration: 4000,
             style: {
-              background: isDarkMode ? '#374151' : '#fff',
-              color: isDarkMode ? '#f9fafb' : '#111827',
-              border: isDarkMode ? '1px solid #4b5563' : '1px solid #e5e7eb',
+              background: isDarkMode ? "#374151" : "#fff",
+              color: isDarkMode ? "#f9fafb" : "#111827",
+              border: isDarkMode ? "1px solid #4b5563" : "1px solid #e5e7eb",
             },
             success: {
               duration: 3000,
               iconTheme: {
-                primary: '#4ade80',
-                secondary: '#fff',
+                primary: "#4ade80",
+                secondary: "#fff",
               },
             },
             error: {
               duration: 5000,
               iconTheme: {
-                primary: '#ef4444',
-                secondary: '#fff',
+                primary: "#ef4444",
+                secondary: "#fff",
               },
             },
           }}

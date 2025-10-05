@@ -1,25 +1,26 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const helmet = require('helmet');
-const compression = require('compression');
-const rateLimit = require('express-rate-limit');
-const http = require('http');
-const socketIo = require('socket.io');
-const passport = require('passport');
-const path = require('path');
-require('dotenv').config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const helmet = require("helmet");
+const compression = require("compression");
+const rateLimit = require("express-rate-limit");
+const http = require("http");
+const socketIo = require("socket.io");
+const passport = require("passport");
+const path = require("path");
+require("dotenv").config();
 
 // Passport configuration
-require('./config/passport');
+require("./config/passport");
 
 const app = express();
+app.set("trust proxy", 1);
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: process.env.CLIENT_URL || "http://localhost:3000",
-    methods: ["GET", "POST"]
-  }
+    methods: ["GET", "POST"],
+  },
 });
 
 // Security middleware
@@ -29,89 +30,92 @@ app.use(compression());
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 100, // limit each IP to 100 requests per windowMs
 });
 app.use(limiter);
 
 // CORS
-app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:3000",
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Passport middleware
 app.use(passport.initialize());
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/safeherhub', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('MongoDB connected successfully'))
-.catch(err => console.error('MongoDB connection error:', err));
+mongoose
+  .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/safeherhub", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB connected successfully"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/reports', require('./routes/reports'));
-app.use('/api/forums', require('./routes/forums'));
-app.use('/api/alerts', require('./routes/alerts'));
-app.use('/api/guardians', require('./routes/guardians'));
-app.use('/api/pulse', require('./routes/pulse'));
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/users", require("./routes/users"));
+app.use("/api/reports", require("./routes/reports"));
+app.use("/api/forums", require("./routes/forums"));
+app.use("/api/alerts", require("./routes/alerts"));
+app.use("/api/guardians", require("./routes/guardians"));
+app.use("/api/pulse", require("./routes/pulse"));
 
 // Socket.io connection handling
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-  
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
   // Join user to their personal room
-  socket.on('join-user-room', (userId) => {
+  socket.on("join-user-room", (userId) => {
     socket.join(`user-${userId}`);
   });
-  
+
   // Join forum room
-  socket.on('join-forum', (forumId) => {
+  socket.on("join-forum", (forumId) => {
     socket.join(`forum-${forumId}`);
   });
-  
+
   // Handle whisper alert chain
-  socket.on('whisper-alert', (data) => {
+  socket.on("whisper-alert", (data) => {
     // Broadcast to trusted contacts
-    data.contacts.forEach(contactId => {
-      socket.to(`user-${contactId}`).emit('whisper-alert-received', data);
+    data.contacts.forEach((contactId) => {
+      socket.to(`user-${contactId}`).emit("whisper-alert-received", data);
     });
   });
-  
+
   // Handle forum messages
-  socket.on('forum-message', (data) => {
-    socket.to(`forum-${data.forumId}`).emit('new-forum-message', data);
+  socket.on("forum-message", (data) => {
+    socket.to(`forum-${data.forumId}`).emit("new-forum-message", data);
   });
-  
+
   // Handle pulse check responses
-  socket.on('pulse-response', (data) => {
-    socket.to(`user-${data.userId}`).emit('pulse-updated', data);
+  socket.on("pulse-response", (data) => {
+    socket.to(`user-${data.userId}`).emit("pulse-updated", data);
   });
-  
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
   });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  res.status(500).json({ message: "Something went wrong!" });
 });
 
 // Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('../client/build'));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static("../client/build"));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../client/build", "index.html"));
   });
 }
 
